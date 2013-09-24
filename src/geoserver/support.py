@@ -1,4 +1,5 @@
 import logging
+from geoserver.util import str_to_bool
 from xml.etree.ElementTree import TreeBuilder, tostring
 from tempfile import mkstemp
 import urllib
@@ -105,6 +106,9 @@ def write_string(name):
 def write_bool(name):
     def write(builder, b):
         builder.start(name, dict())
+        if isinstance(b, str):
+            b = str_to_bool(b)
+
         builder.data("true" if b else "false")
         builder.end(name)
     return write
@@ -156,6 +160,10 @@ class ResourceInfo(object):
         # so force it into the dirty dict before writing
         if hasattr(self, "enabled"):
             self.dirty['enabled'] = self.enabled
+
+        # GeoServer will advertise the resource if we omit the <advertised> tag,
+        if hasattr(self, "advertised"):
+            self.dirty['advertised'] = self.advertised
 
         for k, writer in self.writers.items():
             if k in self.dirty:
